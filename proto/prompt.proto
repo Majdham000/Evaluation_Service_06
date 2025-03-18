@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package prompt;
+
+service PromptService {
+  rpc GeneratePrompt (PromptRequest) returns (PromptResponse) {}
+}
+
+message PromptRequest {
+  string company_data = 1;
+  string messages_history = 2;
+  string ideal_answer = 3;
+  string ai_agent_answer = 4;
+}
+
+message PromptResponse {
+  string prompt = 1;
+}
