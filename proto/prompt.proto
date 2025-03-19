@@ -14,5 +14,6 @@ message PromptRequest {
 }
 
 message PromptResponse {
-  string prompt = 1;
+  int32 score = 1;
+  string reason = 2;
 }
