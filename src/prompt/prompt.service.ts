@@ -4,7 +4,7 @@ import { ChatOpenAI } from "@langchain/openai";
 
 
 @Injectable()
-export class OpenAiService {
+export class PromptService {
     private chatModel: ChatOpenAI;
 
     constructor() {

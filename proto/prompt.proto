@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package prompt;
 
-service PromptService {
+service OpenAiService {
   rpc GeneratePrompt (PromptRequest) returns (PromptResponse) {}
 }
 
