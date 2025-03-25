@@ -7,10 +7,8 @@ export class PromptController {
     constructor(private readonly promptService: PromptService) {}
 
     @GrpcMethod('OpenAiService', 'GeneratePrompt')
-    async generatePrompt(data: { company_data: string; messages_history: string; ideal_answer: string; ai_agent_answer: string }): Promise<{ score: number; reason: string }> {
-        const result = await this.promptService.generateText(data.company_data, data.messages_history, data.ideal_answer, data.ai_agent_answer);
-        const result_json = JSON.parse(result)
-        
-        return { score: result_json.score, reason: result_json.reason };
+    async generatePrompt(data: { company_data: string; messages_history: string; ideal_answer: string; ai_agent_answer: string }): Promise<object> {
+        const result = await this.promptService.generateText(data.company_data, data.messages_history, data.ideal_answer, data.ai_agent_answer);        
+        return result;
     }
 }
