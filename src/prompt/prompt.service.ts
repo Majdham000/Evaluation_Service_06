@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ChatOpenAI } from "@langchain/openai";
+import { ChatPromptTemplate, SystemMessagePromptTemplate } from "@langchain/core/prompts"
+import { SystemMessage } from '@langchain/core/messages';
 
 
 @Injectable()
@@ -18,7 +20,7 @@ export class PromptService {
         this.schema = {
             type: "object",
             properties: {
-                score: { type: "number", minimum: 0, maximum: 100 },
+                score: { type: "integer", minimum: 0, maximum: 100 },
                 reason: { type: "string", maxLength: 35 }
             },
             required: ["score", "reason"]
@@ -27,9 +29,9 @@ export class PromptService {
         this.structuredChatModel = this.chatModel.withStructuredOutput(this.schema);
     }
 
-    async generateText(company_data: string, messages_history: string, ideal_answer: string, ai_agent_answer: string): Promise<object> {
-        const delimiter = '"""';
-        const prompt =  
+    async generateText(company_data: string, messages_history: string, ideal_answer: string, ai_agent_answer: string): Promise<{ score: number; reason: string }> {
+        const delimiter = "###";
+        const systemTemplate =  
 `You are an assistant that evaluates how well the customer service agent answers a user question by comparing the response to the ideal (expert) response. 
 Output a JSON object with keys (score and reason) of evaluating.
 
@@ -37,16 +39,16 @@ You are comparing a submitted answer to an expert answer on a given question. He
 [BEGIN DATA]
 ************
 [Company Data]: 
-${delimiter}${company_data}${delimiter}
+${delimiter}{company_data}${delimiter}
 ************
 [Message History]: 
-${delimiter}${messages_history}${delimiter}
+${delimiter}{messages_history}${delimiter}
 ************
 [Ideal Answer]: 
-${delimiter}${ideal_answer}${delimiter}
+${delimiter}{ideal_answer}${delimiter}
 ************
 [AI Agent Output]: 
-${delimiter}${ai_agent_answer}${delimiter}
+${delimiter}{ai_agent_answer}${delimiter}
 ************
 [END DATA]
 
@@ -65,15 +67,22 @@ ${delimiter}${ai_agent_answer}${delimiter}
 Compute it according to the standards [Score out of 100]
 
 ### Output Format:
-{
+{{
     "score" : final score (0-100) according to achieved standards,
     "reason" : explanation of this score (at most 30 words)
-}`;
+}}`;
 
-        const response = await this.structuredChatModel.invoke([
-            { role: 'system', content: prompt }
-        ]);
+        const promtTemplate = SystemMessagePromptTemplate.fromTemplate(systemTemplate);
 
-        return response;
+        const promptValue = await promtTemplate.invoke({
+            company_data,
+            messages_history,
+            ideal_answer,
+            ai_agent_answer
+        });
+
+        const response = await this.structuredChatModel.invoke(promptValue);
+
+        return response as { score: number; reason: string };
     }
 }
